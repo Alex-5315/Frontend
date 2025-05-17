@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@angular/cli": "^18.0.0",
+    "@angular/common": "^19.2.7",
+    "@angular/core": "^19.2.7",
+    "@angular/material": "^19.2.15",
+    "@angular/router": "^19.2.7",
+    "jwt-decode": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/jwt-decode": "^2.2.1"
+  }
+}
