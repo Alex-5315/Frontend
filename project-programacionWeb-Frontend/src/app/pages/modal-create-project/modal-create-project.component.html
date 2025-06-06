@@ -1,0 +1,49 @@
+<div class="col-lg-12 col-md-12 col-sm-12">
+    <h2 mat-dialog-title>Creación de proyectos</h2>
+
+    <div mat-dialog-content>
+        <form [formGroup]="formCreateProject">
+            <!-- Campo de entrada para el nombre del proyecto -->
+            <div class="col-lg-12 col-md-12 col-sm-12 custom-margin mt-4">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                <mat-form-field class="w-100" appearance="outline">
+                    <mat-label>Nombre del proyecto</mat-label>
+                    <input matInput formControlName="nombre">
+                </mat-form-field>
+                    </div>
+                </div>
+            
+            <!-- Campo de entrada para la descripción -->
+            <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-6">
+                <mat-form-field class="w-100" appearance="outline">
+                    <mat-label>Descripción</mat-label>
+                    <textarea matInput formControlName="descripcion"></textarea>
+                </mat-form-field>
+            </div>
+            </div>
+
+            <!-- Campo de selección de administrador -->
+            <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-6">
+                <mat-form-field class="w-100" appearance="outline">
+                    <mat-label>Seleccionar Administrador</mat-label>
+                    <mat-select formControlName="administrador_id">
+                        <mat-option value="">Seleccionar</mat-option>
+                        @for (admin of availableAdministrators; track admin) {
+                            <mat-option [value]="admin.id">{{ admin.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                </div>
+            </div>
+            </div>
+        </form>
+    </div>
+
+    <mat-dialog-actions align="end">
+        <button mat-button (click)="onCancel()">Cancelar</button>
+        <button mat-button [disabled]="formCreateProject.invalid" (click)="onSubmit()">Crear</button>
+    </mat-dialog-actions>
+</div>

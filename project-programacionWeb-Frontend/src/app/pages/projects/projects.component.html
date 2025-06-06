@@ -1,1 +1,85 @@
-<p>projects works!</p>
+<section class="content">
+    <div class="content-block">
+        <!-- Breadcrumbs para navegación -->
+        @for (breadcrumb of breadscrums; track breadcrumb) {
+            <div class="block-header">
+                <app-breadcrumb 
+                    [title]="breadcrumb.title" 
+                    [items]="breadcrumb.item" 
+                    [active_item]="breadcrumb.active">
+                </app-breadcrumb>
+            </div>
+        }
+    </div>
+
+    <div class="row clearfix">
+        <div id="card-search">
+            <div class="card col-md-12">
+                <div class="body">
+                    <!-- Formulario de búsqueda -->
+                    <form [formGroup]="projectFormSearchFilter" class="row">
+                        <div class="col-md-6">
+                            <mat-form-field class="w-100" appearance="outline">
+                                <mat-label>Buscar Proyecto</mat-label>
+                                <input matInput formControlName="nombre">
+                            </mat-form-field>
+                        </div>
+                    </form>
+
+                    <!-- Encabezado con título y botón para crear proyectos -->
+                    <div class="materialTableHeader">
+                        <div class="left">
+                            <h2>Lista de Proyectos</h2>
+                        </div>
+                        <div class="right">
+                            <button mat-flat-button class="bg-cyan" (click)="openModalCreateProject()">Crear Proyecto</button>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor de tarjetas de proyectos -->
+                    <div class="project-list">
+                        <div *ngIf="isLoading" class="loading-spinner">
+                            <mat-spinner></mat-spinner>
+                        </div>
+
+                        <div *ngIf="dataSource.data.length === 0" class="no-data-message">
+                            No hay proyectos disponibles.
+                        </div>
+
+                        <div class="row">
+                            <div *ngFor="let project of dataSource.data" class="col-md-4 col-sm-6 col-xs-12">
+                                <div class="project-card">
+                                    <div class="card-header">
+                                        <h3>{{ project.nombre }}</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>Descripción:</strong> {{ project.descripcion }}</p>
+                                        <p><strong>Administrador:</strong> {{ project.administrador.nombre }}</p>
+                                        <p><strong>Fecha de creación:</strong> {{ project.fecha_creacion | date:'longDate':'es' }}</p>
+                                        <p><strong>Usuarios asignados:</strong> {{ project.usuarios?.length || 0 }}</p>
+                                    </div>
+                                    <div class="card-footer">
+                                        <button mat-icon-button matTooltip="Editar Proyecto" (click)="openModalEditProject(project)">
+                                            <mat-icon>edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button matTooltip="Eliminar Proyecto" (click)="deleteProject(project.id)">
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                        <button mat-icon-button matTooltip="Ver Proyecto" (click)="openModalViewProject(project)">
+                                            <mat-icon>visibility</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paginación -->
+                    <mat-paginator [pageSize]="6" showFirstLastButtons [pageSizeOptions]="[6, 12, 18]">
+                    </mat-paginator>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
