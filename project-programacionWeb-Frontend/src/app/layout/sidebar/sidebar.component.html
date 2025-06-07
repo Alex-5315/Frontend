@@ -7,14 +7,20 @@
         <ul class="list">
           <li class="sidebar-user-panel">
             <div class="user-panel">
-              <div class=" image">
-                <img src="imagen de preferencia" class="img-circle user-img-circle" alt="User Image" />
+              <div class="image">
+                <img 
+                  [src]="userRole === 'admin' ? adminImgUrl : userImgUrl" 
+                  class="user_img" 
+                  width="135" 
+                  height="125" 
+                  alt="User">
+              </div>
+              <!-- Esta parte es para mostrar el tipo de rol del usuario Registrado -->
+              <div class="profile-usertitle">
+                <div class="sidebar-userpic-name">{{ userLogged }}</div>
+                <div>{{ getUserRole(rolAuthority) }}</div>
               </div>
             </div>
-            <div class="profile-usertitle">
-              <div class="sidebar-userpic-name">{{ userLogged }}</div>
-            </div>
-            <br>
           </li>
           <!-- Top Most level menu -->
           @for (sidebarItem of sidebarItems; track sidebarItem) {
@@ -25,7 +31,7 @@
             @if (!sidebarItem.groupTitle;) {
             <a [routerLink]="sidebarItem.class === '' ? [sidebarItem.path] : null" [ngClass]="[sidebarItem.class]"
               (click)="callToggleMenu($event, sidebarItem.submenu.length)" class="menu-top">
-              <i [ngClass]="[sidebarItem.iconType]">{{sidebarItem.icon}}</i>
+              <i [ngClass]="[sidebarItem.iconType]">{{ sidebarItem.icon }}</i>
               <span class="hide-menu" [innerHTML]="sanitizeHtml(sidebarItem.title)"></span>
               @if (sidebarItem.badge !== '' ) {
               <span [ngClass]="[sidebarItem.badgeClass]" [innerHTML]="sanitizeHtml(sidebarItem.badge)"></span>

@@ -95,7 +95,7 @@ describe('ProjectService', () => {
   it('debería desasociar usuarios de un proyecto', () => {
     const disassociationData = { projectId: 1, userId: 2 };
 
-    service.removeUserFromProject(disassociationData).subscribe(response => {
+    service.removeUserFromProject(disassociationData.projectId, disassociationData.userId).subscribe(response => {
       expect(response).toEqual(disassociationData);
     });
 

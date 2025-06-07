@@ -25,7 +25,10 @@ import { ModalCreateUserComponent } from '../modal-create-user/modal-create-user
 
 // Definición de la interfaz para la estructura de un usuario
 export interface User {
+  id: number;
   name: string;
+  email: string;
+  rol_id: number;
 }
 
 @Component({
@@ -98,10 +101,8 @@ export class UsersComponent {
   
   // Método que se ejecuta al inicializar el componente
   ngOnInit(): void {
-    this.createUserFormSearchFilter(); // Configuración del formulario de búsqueda
-    this.getAllUserByAdministrator(); // Obtener lista de usuarios
-    this.handleUserFilterChance('name', 'name'); // Manejo de cambios en el filtro de nombre
-    this.handleUserFilterChance('email', 'email'); // Manejo de cambios en el filtro de email
+    this.createUserFormSearchFilter();
+    this.getAllUserByAdministrator();
   }
 
   // Creación de formulario reactivo para búsqueda de usuarios con validaciones
@@ -110,6 +111,12 @@ export class UsersComponent {
       name: [''], // Campo de búsqueda por nombre
       email: [''] // Campo de búsqueda por email
     });
+
+    this.userFormSearchFilter.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe(() => {
+        this.applyUserFilter();
+      });
   }
 
   // Conversión de roles numéricos a nombres más comprensibles
@@ -138,14 +145,12 @@ export class UsersComponent {
 
   // Obtención de lista de usuarios administrados con filtrado opcional
   getAllUserByAdministrator(filters?: any): void {
-    this.isLoading = true; // Activa indicador de carga
+    this.isLoading = true;
     this.userService.getAllUserByAdministrator(filters).subscribe({
       next: (response: { users: any[] }) => {
         this.usersList = response.users;
-        console.log('listado', this.usersList);
-        this.dataSource.data = response.users;
-        this.dataSource.paginator = this.paginator; // Configura paginador
-        this.isLoading = false; // Oculta indicador de carga
+        this.applyUserFilter(); // Aplica el filtro después de cargar
+        this.isLoading = false;
       }
     });
   }
@@ -195,5 +200,27 @@ export class UsersComponent {
         this._sanckBar.open(errorMessage, 'Cerrar', { duration: 5000 });
       }
     });
+  }
+
+  applyUserFilter() {
+    const { name, email } = this.userFormSearchFilter.value;
+    let filtered = this.usersList;
+
+    if (name) {
+      filtered = filtered.filter(user =>
+        (user.name || user.nombre)?.toLowerCase().includes(name.toLowerCase())
+      );
+    }
+    if (email) {
+      filtered = filtered.filter(user =>
+        user.email?.toLowerCase().includes(email.toLowerCase())
+      );
+    }
+
+    this.dataSource.data = filtered;
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+      this.paginator.firstPage();
+    }
   }
 }

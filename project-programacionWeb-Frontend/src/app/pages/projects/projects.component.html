@@ -18,21 +18,37 @@
                 <div class="body">
                     <!-- Formulario de búsqueda -->
                     <form [formGroup]="projectFormSearchFilter" class="row">
-                        <div class="col-md-6">
-                            <mat-form-field class="w-100" appearance="outline">
-                                <mat-label>Buscar Proyecto</mat-label>
-                                <input matInput formControlName="nombre">
-                            </mat-form-field>
-                        </div>
+                      <div class="col-md-4">
+                        <mat-form-field class="w-100" appearance="outline">
+                          <mat-label>Buscar por nombre</mat-label>
+                          <input matInput formControlName="nombre">
+                        </mat-form-field>
+                      </div>
+                      <div class="col-md-4">
+                        <mat-form-field class="w-100" appearance="outline">
+                          <mat-label>Buscar por descripción</mat-label>
+                          <input matInput formControlName="descripcion">
+                        </mat-form-field>
+                      </div>
+                      <div class="col-md-4">
+                        <mat-form-field class="w-100" appearance="outline">
+                          <mat-label>Buscar por fecha (dd/mm/yy)</mat-label>
+                          <input matInput formControlName="fecha">
+                        </mat-form-field>
+                      </div>
                     </form>
 
                     <!-- Encabezado con título y botón para crear proyectos -->
                     <div class="materialTableHeader">
                         <div class="left">
-                            <h2>Lista de Proyectos</h2>
+                            <ul class="header-buttons-left ms-0">
+                                <li class="tbl-title">
+                                <h2>Lista de Proyectos</h2>
+                                </li>
+                            </ul>
                         </div>
                         <div class="right">
-                            <button mat-flat-button class="bg-cyan" (click)="openModalCreateProject()">Crear Proyecto</button>
+                            <button mat-flat-button class="bg-cyan" (click)="openModalCreateProject()" *ngIf="userRole === 1">Crear Proyecto</button>
                         </div>
                     </div>
 
@@ -47,7 +63,7 @@
                         </div>
 
                         <div class="row">
-                            <div *ngFor="let project of dataSource.data" class="col-md-4 col-sm-6 col-xs-12">
+                            <div *ngFor="let project of pagedProjects" class="col-md-4 col-sm-6 col-xs-12">
                                 <div class="project-card">
                                     <div class="card-header">
                                         <h3>{{ project.nombre }}</h3>
@@ -59,13 +75,13 @@
                                         <p><strong>Usuarios asignados:</strong> {{ project.usuarios?.length || 0 }}</p>
                                     </div>
                                     <div class="card-footer">
-                                        <button mat-icon-button matTooltip="Editar Proyecto" (click)="openModalEditProject(project)">
+                                        <button mat-icon-button matTooltip="Editar Proyecto" (click)="openModalEditProject(project)" *ngIf="userRole === 1">
                                             <mat-icon>edit</mat-icon>
                                         </button>
-                                        <button mat-icon-button matTooltip="Eliminar Proyecto" (click)="deleteProject(project.id)">
+                                        <button mat-icon-button matTooltip="Eliminar Proyecto" (click)="deleteProject(project.id)" *ngIf="userRole === 1">
                                             <mat-icon>delete</mat-icon>
                                         </button>
-                                        <button mat-icon-button matTooltip="Ver Proyecto" (click)="openModalViewProject(project)">
+                                        <button mat-icon-button matTooltip="Ver Proyecto" (click)="openDetailProject(project)">
                                             <mat-icon>visibility</mat-icon>
                                         </button>
                                     </div>
@@ -75,7 +91,12 @@
                     </div>
 
                     <!-- Paginación -->
-                    <mat-paginator [pageSize]="6" showFirstLastButtons [pageSizeOptions]="[6, 12, 18]">
+                    <mat-paginator
+                      [length]="dataSource.data.length"
+                      [pageSize]="pageSize"
+                      [pageIndex]="pageIndex"
+                      [pageSizeOptions]="[6, 12, 18]"
+                      (page)="onPageChange($event)">
                     </mat-paginator>
                 </div>
             </div>

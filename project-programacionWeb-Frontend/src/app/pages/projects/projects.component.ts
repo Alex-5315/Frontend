@@ -22,6 +22,8 @@ import { ModalCreateProjectComponent } from '../modal-create-project/modal-creat
 import { ModalViewProjectComponent } from '../modal-view-project/modal-view-project.component';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
+import { PageEvent } from '@angular/material/paginator';
+import { AuthService } from 'app/services/auth.service';
 
 
 @Component({
@@ -50,6 +52,7 @@ import { RouterModule } from '@angular/router';
 })
 export class ProjectsComponent {
   isAdmin = false;
+  userRole: number = 0;
 
   displayedColumns: string[] = ['nombre', 'descripcion', 'administrador', 'action'];
   breadscrums = [{ title: 'Gestión de proyectos', item: [], active: 'Lista de proyectos' }];
@@ -62,24 +65,90 @@ export class ProjectsComponent {
   isLoading = false;
   projectDefaultFilterSearch: any = { nombre: undefined };
 
+  pageSize = 6;
+  pageIndex = 0;
+
   constructor(
     private readonly _formBuilder: FormBuilder,
     private readonly projectService: ProjectService,
     private readonly dialogModel: MatDialog,
     private readonly _snackBar: MatSnackBar,
-    private readonly router: Router // Agregado para la navegación
+    private readonly router: Router, // Agregado para la navegación
+    private readonly authService: AuthService,
   ) { }
   
   ngOnInit(): void {
+    const userInfo = this.authService.getAuthFromSessionStorage();
+    this.userRole = userInfo.rol_id;
+    this.isLoading = true;
     this.createProjectFormSearchFilter();
+
+    // Ahora todos usan getAllProjects, el backend filtra según el usuario
     this.getAllProjects();
-    this.handleProjectFilterChange('nombre', 'nombre');
+  }
+
+  getProjectsByUserId(userId: number): void {
+    this.isLoading = true;
+    this.projectService.getAllProjects().subscribe({
+      next: (response: { projects: any[] }) => {
+        const filteredProjects = response.projects.filter(project =>
+          project.usuarios?.some((u: any) => u.id === userId)
+        );
+        this.projectsList = filteredProjects.map(project => ({
+          ...project,
+          fecha_creacion: project.fecha_creacion,
+          cantidadUsuarios: project.usuarios ? project.usuarios.length : 0
+        }));
+        this.dataSource.data = this.projectsList;
+        this.dataSource.paginator = this.paginator;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error al obtener proyectos por usuario:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
   private createProjectFormSearchFilter() {
-    this.projectFormSearchFilter = this._formBuilder.group({ nombre: [''] });
+    this.projectFormSearchFilter = this._formBuilder.group({
+      nombre: [''],
+      descripcion: [''],
+      fecha: ['']
+    });
+
+    this.projectFormSearchFilter.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe(() => {
+        this.applyProjectFilter();
+      });
   }
 
+  applyProjectFilter() {
+    const { nombre, descripcion, fecha } = this.projectFormSearchFilter.value;
+    let filtered = this.projectsList;
+
+    if (nombre) {
+      filtered = filtered.filter(project =>
+        project.nombre?.toLowerCase().includes(nombre.toLowerCase())
+      );
+    }
+    if (descripcion) {
+      filtered = filtered.filter(project =>
+        project.descripcion?.toLowerCase().includes(descripcion.toLowerCase())
+      );
+    }
+    if (fecha) {
+      filtered = filtered.filter(project => {
+        const projectDate = new Date(project.fecha_creacion);
+        const formatted = projectDate.toLocaleDateString('es-ES');
+        return formatted.includes(fecha);
+      });
+    }
+
+    this.dataSource.data = filtered;
+    this.pageIndex = 0; // Reinicia la paginación al buscar
+  }
 
   handleProjectFilterChange(controlName: string, filterKey: string) {
     this.projectFormSearchFilter.controls[controlName].valueChanges.pipe(
@@ -95,19 +164,29 @@ export class ProjectsComponent {
     this.isLoading = true;
     this.projectService.getAllProjects().subscribe({
       next: (response: { projects: any[] }) => {
-            this.projectsList = response.projects.map(project => ({
-                ...project,
-                fecha_creacion: project.fecha_creacion, //  Fecha
-                cantidadUsuarios: project.usuarios ? project.usuarios.length : 0 // Contador de usuarios asignados
-            }));
-            this.dataSource.data = this.projectsList;
-            this.dataSource.paginator = this.paginator;
-            this.isLoading = false;
-        },
-        error: (error) => {
-            console.error('Error al obtener proyectos:', error);
-            this.isLoading = false;
+        const user = this.authService.getAuthFromSessionStorage();
+        let filteredProjects = response.projects;
+
+        // Si el usuario NO es admin, filtra solo los proyectos donde participa
+        if (user.rol_id !== 1) { // Asumiendo 1 = admin
+          filteredProjects = response.projects.filter(project =>
+            project.usuarios?.some((u: any) => u.id === user.id)
+          );
         }
+
+        this.projectsList = filteredProjects.map(project => ({
+          ...project,
+          fecha_creacion: project.fecha_creacion,
+          cantidadUsuarios: project.usuarios ? project.usuarios.length : 0
+        }));
+        this.dataSource.data = this.projectsList;
+        this.dataSource.paginator = this.paginator;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error al obtener proyectos:', error);
+        this.isLoading = false;
+      }
     });
 }
 
@@ -137,9 +216,11 @@ openModalEditProject(project: any): void {
     });
 }
 
+openDetailProject(project: any): void {
+    this.router.navigate(['/page/projects/detail', project.id]);
+}
 
   openModalViewProject(project: any): void {
-    this.router.navigate(['/projects', project.id]);
     const dialogRef = this.dialogModel.open(ModalViewProjectComponent, {
         data: project,
         minWidth: '300px',
@@ -167,5 +248,16 @@ openModalEditProject(project: any): void {
         this._snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
       }
     });
+  }
+
+  get pagedProjects() {
+    const start = this.pageIndex * this.pageSize;
+    const end = start + this.pageSize;
+    return this.dataSource.data.slice(start, end);
+  }
+
+  onPageChange(event: PageEvent) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
   }
 }

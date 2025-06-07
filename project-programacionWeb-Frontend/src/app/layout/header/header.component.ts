@@ -12,6 +12,7 @@ import { InConfiguration, AuthService } from '@core';
 import { FeatherIconsComponent } from '@shared/components/feather-icons/feather-icons.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
+import { ROLES } from '@core/models/enums'; // Ajusta la ruta si es necesario
 
 @Component({
   selector: 'app-header',
@@ -32,6 +33,10 @@ export class HeaderComponent implements OnInit {
   isOpenSidebar?: boolean;
   docElement?: HTMLElement;
   isFullScreen = false;
+  userRole: 'admin' | 'user' = 'user';
+  adminImgUrl = 'assets/images/Uso-real/admin-avatar.png';
+  userImgUrl = 'assets/images/Uso-real/pepe-matrix.gif';
+
   constructor(
     @Inject(DOCUMENT) private readonly document: Document,
     private readonly renderer: Renderer2,
@@ -40,10 +45,12 @@ export class HeaderComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly router: Router
   ) {
+    const user = this.authService.getAuthFromSessionStorage();
+    this.userRole = user.rol_id === ROLES.ADMIN ? 'admin' : 'user';
     this.userLogged = this.authService.getAuthFromSessionStorage().nombre;
    }
 
-   userLogged: string | undefined = '';
+
    
   ngOnInit() {
     this.config = this.configService.configData;
@@ -86,4 +93,6 @@ export class HeaderComponent implements OnInit {
   logout() {
     this.authService.logout();
   }
+
+  userLogged: string | undefined = '';
 }

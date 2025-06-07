@@ -36,7 +36,17 @@ export class ProjectService {
     return this.http.post<any>(`${this.urlBaseServices}/associate`, data);
   }
 
-  removeUserFromProject(data: any): Observable<any> {
+  removeUserFromProject(projectId: number, userId: number): Observable<any> {
+    const data = { projectId, userId };
     return this.http.delete<any>(`${this.urlBaseServices}/disassociate`, { body: data });
   }
+
+  getUsersByProjectId(projectId: number): Observable<any[]> {
+    // Ajusta la URL según tu backend
+    return this.http.get<any[]>(`/api/projects/${projectId}/users`);
+  }
+  
+  getProjectsByUserId(userId: number) {
+  return this.http.get<{ projects: any[] }>(`${this.urlBaseServices}/user/${userId}`);
+}
 }

@@ -1,13 +1,12 @@
-
-.left-img {
-    background-size: contain;
-    background-repeat: no-repeat;
-    width: 100%;
-    background-color: white;
-    height: 100%;
-    margin-left: 80px;
+.auth-container, .auth-main {
+  height: 100vh;
+  min-height: 100vh;
 }
 
-.auth-container {
-    background-color: white;
+.left-img {
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }

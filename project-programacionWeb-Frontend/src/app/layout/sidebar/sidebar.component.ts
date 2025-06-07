@@ -25,6 +25,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgScrollbar } from 'ngx-scrollbar';
 import { UnsubscribeOnDestroyAdapter } from '@shared'; // Manejador de eventos para desuscripción
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ROLES } from '@core/models/enums'; // Ajusta la ruta si es necesario
 
 @Component({
   selector: 'app-sidebar',
@@ -56,7 +57,11 @@ export class SidebarComponent
   currentRoute?: string; // Ruta actual activa
 
   userLogged: string | undefined = ''; // Usuario autenticado en sesión
-  
+
+  userRole: 'admin' | 'user' = 'user';
+  adminImgUrl = 'assets/images/Uso-real/groot.gif';
+  userImgUrl = 'assets/images/Uso-real/fino.jpg';
+
   constructor(
     @Inject(DOCUMENT) private readonly _document: Document, // Inyección del documento DOM
     private readonly _renderer: Renderer2, // Servicio para manipulación del DOM
@@ -66,7 +71,7 @@ export class SidebarComponent
     private readonly _domSanitizer: DomSanitizer // Servicio para sanitizar contenido HTML
   ) {
     super();
-    
+
     // Escuchar eventos de navegación para cerrar el sidebar en dispositivos móviles
     this.subs.sink = this._router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -129,13 +134,20 @@ export class SidebarComponent
     return this._domSanitizer.bypassSecurityTrustHtml(html);
   }
 
+  rolAuthority: any;
   // Método ejecutado al inicializar el componente
   ngOnInit() {
+    const user = this._authService.getAuthFromSessionStorage();
+    this.userRole = user.rol_id === ROLES.ADMIN ? 'admin' : 'user';
+
     const rolAuthority = this._authService.getAuthFromSessionStorage().rol_id;
-    
+    this.rolAuthority = rolAuthority;
+
     // Filtrar las rutas disponibles según el rol del usuario
-    this.sidebarItems = ROUTES.filter((sidebarItem) => sidebarItem?.rolAuthority.includes(rolAuthority));
-    
+    this.sidebarItems = ROUTES.filter((sidebarItem) =>
+      sidebarItem?.rolAuthority.includes(rolAuthority)
+    );
+
     this.initLeftSidebar();
     this.bodyTag = this._document.body; // Manipular estilos generales
   }
@@ -184,6 +196,17 @@ export class SidebarComponent
     if (body.classList.contains('side-closed-hover')) {
       this._renderer.removeClass(this._document.body, 'side-closed-hover');
       this._renderer.addClass(this._document.body, 'submenu-closed');
+    }
+  }
+
+  getUserRole(rolId: number): string {
+    switch (rolId) {
+      case 1:
+        return 'Administrador';
+      case 2:
+        return 'Usuario';
+      default:
+        return 'Desconocido';
     }
   }
 }
