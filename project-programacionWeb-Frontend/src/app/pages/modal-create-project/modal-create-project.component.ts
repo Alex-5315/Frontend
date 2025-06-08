@@ -7,7 +7,7 @@ import { DialogModule } from '@angular/cdk/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogActions,MatDialogContent, MatDialogModule, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogModule, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { ProjectService } from 'app/services/projects/projects.service';
 import { UsersService } from 'app/services/users/users.service';
@@ -18,7 +18,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   selector: 'app-modal-create-project',
   standalone: true,
   imports: [
-    MatDialogModule, MatDialogTitle, MatDialogContent,MatDialogActions,
+    MatDialogModule, MatDialogTitle, MatDialogContent, MatDialogActions,
     CommonModule, FormsModule, DialogModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule,
     MatDialogActions, MatSelectModule, ReactiveFormsModule
   ],
@@ -26,25 +26,27 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./modal-create-project.component.scss']
 })
 export class ModalCreateProjectComponent implements OnInit {
+  // Formulario reactivo para crear el proyecto
   formCreateProject!: FormGroup;
+  // Lista de administradores disponibles para asignar al proyecto
   availableAdministrators: any[] = [];
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    private readonly _formBuilder: FormBuilder,
-    private readonly _projectService: ProjectService,
-    private readonly _userService: UsersService,
-    private readonly dialogRef: MatDialogRef<ModalCreateProjectComponent>,
-    private readonly _snackBar: MatSnackBar
+    @Inject(MAT_DIALOG_DATA) public data: any, // Datos inyectados al modal (si los hay)
+    private readonly _formBuilder: FormBuilder, // Para construir el formulario reactivo
+    private readonly _projectService: ProjectService, // Servicio para proyectos
+    private readonly _userService: UsersService, // Servicio para usuarios
+    private readonly dialogRef: MatDialogRef<ModalCreateProjectComponent>, // Referencia al modal para cerrarlo
+    private readonly _snackBar: MatSnackBar // Para mostrar mensajes tipo snackbar
   ) {
-    this.createProjectForm();
+    this.createProjectForm(); // Inicializa el formulario al crear el componente
   }
 
   ngOnInit(): void {
-    this.getAllAdministrators();
+    this.getAllAdministrators(); // Carga la lista de administradores al iniciar el modal
   }
 
-  // Creación del formulario de proyectos con validaciones
+  // Crea el formulario de proyectos con validaciones requeridas
   private createProjectForm(): void {
     this.formCreateProject = this._formBuilder.group({
       nombre: ['', Validators.required],
@@ -53,7 +55,7 @@ export class ModalCreateProjectComponent implements OnInit {
     });
   }
 
-  // Obtener la lista de administradores disponibles
+  // Obtiene la lista de administradores disponibles para asignar al proyecto
   getAllAdministrators(): void {
     this._userService.getAllAdministrator().subscribe({
       next: (res) => {
@@ -65,25 +67,27 @@ export class ModalCreateProjectComponent implements OnInit {
     });
   }
 
-  // Enviar el formulario para crear un nuevo proyecto
+  // Envía el formulario para crear un nuevo proyecto
   onSubmit(): void {
     if (!this.formCreateProject.valid) {
       Swal.fire('Error', 'Completa todos los campos obligatorios', 'error');
       return;
     }
 
+    // Prepara los datos del proyecto a crear
     const projectData = {
       nombre: this.formCreateProject.get('nombre')?.value,
       descripcion: this.formCreateProject.get('descripcion')?.value,
       administrador_id: this.formCreateProject.get('administrador_id')?.value
     };
 
+    // Llama al servicio para crear el proyecto
     this._projectService.createProject(projectData).subscribe({
       next: (response) => {
         console.log('Proyecto creado con éxito:', response);
         this._snackBar.open(response.message, 'Cerrar', { duration: 5000 });
         this.formCreateProject.reset();
-        this.dialogRef.close(true);
+        this.dialogRef.close(true); // Cierra el modal y notifica éxito
       },
       error: (error) => {
         console.error('Error en la creación del proyecto:', error);
@@ -93,7 +97,7 @@ export class ModalCreateProjectComponent implements OnInit {
     });
   }
 
-  // Cerrar el modal de creación de proyectos
+  // Cierra el modal de creación de proyectos sin guardar cambios
   onCancel(): void {
     this.dialogRef.close();
   }

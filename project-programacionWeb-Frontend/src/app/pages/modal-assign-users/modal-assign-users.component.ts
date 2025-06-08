@@ -33,35 +33,40 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
   ]
 })
 export class ModalAssignUsersComponent implements OnInit {
+    // Lista completa de usuarios cargados
     usersList: any[] = [];
+    // Lista filtrada para mostrar en la tabla (útil si implementas búsqueda)
     filteredUsers: any[] = [];
+    // Término de búsqueda (si implementas filtro por nombre/email)
     searchTerm = '';
+    // Estado del checkbox "seleccionar todos"
     selectAll = false;
 
     constructor(
-        @Inject(MAT_DIALOG_DATA) public data: { projectId: number },
-        private readonly dialogRef: MatDialogRef<ModalAssignUsersComponent>,
-        private readonly projectService: ProjectService,
-        private readonly usersService: UsersService
+        @Inject(MAT_DIALOG_DATA) public data: { projectId: number }, // Recibe el ID del proyecto al que se asignarán usuarios
+        private readonly dialogRef: MatDialogRef<ModalAssignUsersComponent>, // Referencia al modal para cerrarlo
+        private readonly projectService: ProjectService, // Servicio para operaciones de proyectos
+        private readonly usersService: UsersService // Servicio para operaciones de usuarios
     ) {}
 
     ngOnInit(): void {
-        this.getUsers();
+        this.getUsers(); // Al iniciar, carga la lista de usuarios disponibles
     }
 
+    // Obtiene todos los usuarios y filtra solo los de rol "Usuario" (rol_id === 2)
     getUsers(): void {
         this.usersService.getAllUsers().subscribe({
             next: (response) => {
-                // Ajusta según la estructura real de la respuesta
+                // Ajusta según la estructura real de la respuesta del backend
                 const users = Array.isArray(response) ? response : response.users || response.data || [];
                 interface AssignableUser extends User {
-                  selected: boolean;
+                  selected: boolean; // Marca si el usuario está seleccionado para asignar
                 }
 
                 this.usersList = (users as User[])
-                  .filter((user: User) => user.rol_id === 2)
+                  .filter((user: User) => user.rol_id === 2) // Solo usuarios normales
                   .map((user: User): AssignableUser => ({ ...user, selected: false }));
-                this.filteredUsers = [...this.usersList];
+                this.filteredUsers = [...this.usersList]; // Inicialmente, todos los usuarios están en la lista filtrada
             },
             error: (error) => {
                 console.error('Error al obtener usuarios:', error);
@@ -69,15 +74,17 @@ export class ModalAssignUsersComponent implements OnInit {
         });
     }
 
+    // Marca o desmarca todos los usuarios en la lista
     toggleAllUsers(selectAll: boolean): void {
       this.selectAll = selectAll;
       this.usersList.forEach(user => user.selected = selectAll);
     }
 
+    // Asigna los usuarios seleccionados al proyecto
     assignSelectedUsers(): void {
         const selectedUsers = this.usersList.filter(user => user.selected);
         if (selectedUsers.length === 0) {
-            return;
+            return; // No hay usuarios seleccionados, no hace nada
         }
         const userIds = selectedUsers.map(user => user.id);
         this.projectService.assignUsersToProject({
@@ -85,7 +92,7 @@ export class ModalAssignUsersComponent implements OnInit {
             userIds
         }).subscribe({
             next: () => {
-                this.dialogRef.close(true);
+                this.dialogRef.close(true); // Cierra el modal y notifica éxito
             },
             error: (error) => {
                 console.error('Error al asignar usuarios:', error);
@@ -93,6 +100,7 @@ export class ModalAssignUsersComponent implements OnInit {
         });
     }
 
+    // Cierra el modal sin hacer cambios
     closeDialog(): void {
         this.dialogRef.close();
     }

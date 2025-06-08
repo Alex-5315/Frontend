@@ -80,27 +80,33 @@ export class ModalEditProjectComponent implements OnInit {
   // Enviar el formulario para actualizar el proyecto
   onSubmit(): void {
     if (!this.formEditProject.valid) {
+      // Si el formulario no es válido, muestra un mensaje de error y no continúa
       Swal.fire('Error', 'Completa todos los campos obligatorios', 'error');
       return;
     }
 
+    // Prepara los datos actualizados del proyecto
     const updatedProjectData = {
-        id: this.data.project.id, //  Nos aseguramos de que se envíe el ID correcto
-        nombre: this.formEditProject.get('nombre')?.value,
-        descripcion: this.formEditProject.get('descripcion')?.value,
-        administrador_id: this.formEditProject.get('administrador_id')?.value
+      id: this.data.project.id, // asegura que se envíe el ID correcto
+      nombre: this.formEditProject.get('nombre')?.value, // Nuevo nombre
+      descripcion: this.formEditProject.get('descripcion')?.value, // Nueva descripción
+      administrador_id: this.formEditProject.get('administrador_id')?.value // Nuevo administrador
     };
 
+    // Muestra en consola los datos que se enviarán al backend
     console.log('Datos enviados al backend:', updatedProjectData);
 
+    // Llama al servicio para actualizar el proyecto
     this._projectService.updateProject(this.data.project.id, updatedProjectData).subscribe({
       next: (response) => {
+        // Si la actualización es exitosa, muestra mensaje y cierra el modal
         console.log('Proyecto actualizado con éxito:', response);
         this._snackBar.open(response.message, 'Cerrar', { duration: 5000 });
         this.formEditProject.reset();
         this.dialogRef.close(true);
       },
       error: (error) => {
+        // Si hay error, muestra mensaje de error
         console.error('Error al actualizar el proyecto:', error);
         const errorMessage = error.error?.message || 'Ocurrió un error inesperado. Intenta nuevamente.';
         this._snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });

@@ -69,31 +69,34 @@ export class ModalViewProjectComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // Obtiene el parámetro 'id' de la ruta (id del proyecto)
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.projectId = Number(id);
+      // Llama al servicio para obtener todos los proyectos
       this.projectService.getAllProjects().subscribe({
         next: (projects) => {
           console.log('Respuesta de getAllProjects:', projects);
-          // Busca el proyecto por id
+          // Busca el proyecto específico por id
           const foundProject = projects.projects.find((p: any) => p.id === this.projectId);
           if (foundProject) {
-            this.project = foundProject;
-            this.usersList.data = foundProject.usuarios || [];
+            this.project = foundProject; // Asigna el proyecto encontrado
+            this.usersList.data = foundProject.usuarios || []; // Asigna los usuarios asociados al proyecto
           } else {
-            this.usersList.data = [];
+            this.usersList.data = []; // Si no encuentra el proyecto, deja la lista vacía
           }
         },
         error: (err) => {
-          this.usersList.data = [];
+          this.usersList.data = []; // Si hay error, deja la lista vacía
         }
       });
     }
 
+    // Obtiene la información del usuario logueado y su rol
     const userInfo = this.authService.getAuthFromSessionStorage();
     this.userRole = userInfo.rol_id;
 
-    // Después de cargar los usuarios:
+    // Asigna el paginador a la tabla de usuarios después de cargar los datos
     setTimeout(() => {
       this.usersList.paginator = this.paginator;
     });
